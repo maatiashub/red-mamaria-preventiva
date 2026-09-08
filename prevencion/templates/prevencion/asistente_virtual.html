@@ -1,0 +1,110 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Asistente Virtual Sonia - Red Mamaria Preventiva con AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'prevencion/css/estilos.css' %}">
+    <style>
+        body { background-color: #fbf7ff; height: 100vh; }
+        .chat-wrapper {
+            max-width: 800px;
+            margin: 0 auto;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .chat-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid #e5d8f8;
+            background: #fff;
+        }
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        .msg {
+            max-width: 75%;
+            padding: 0.65rem 1rem;
+            border-radius: 16px;
+            line-height: 1.4;
+        }
+        .msg-sonia {
+            background: #fff;
+            border: 1px solid #e5d8f8;
+            align-self: flex-start;
+            border-bottom-left-radius: 4px;
+        }
+        .msg-usuario {
+            background: #8b5cf6;
+            color: #fff;
+            align-self: flex-end;
+            border-bottom-right-radius: 4px;
+        }
+        .chat-input-area {
+            padding: 1rem 1.5rem;
+            background: #fff;
+            border-top: 1px solid #e5d8f8;
+        }
+        .typing-indicator {
+            font-size: 0.85rem;
+            color: #74638d;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="chat-wrapper">
+
+        <!-- Header -->
+        <div class="chat-header d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center gap-2">
+                <a href="{% url 'inicio' %}" class="btn btn-sm btn-outline-secondary border-0">
+                    <i class="bi bi-arrow-left"></i>
+                </a>
+                <div class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 38px; height: 38px; background-color: rgba(139, 92, 246, 0.12); color: #7c3aed;">
+                    <i class="bi bi-robot fs-5"></i>
+                </div>
+                <div>
+                    <div class="fw-bold" style="color:#7c3aed;">Asistente Virtual Sonia</div>
+                    <div class="text-muted small">Orientación en salud mamaria</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mensajes -->
+        <div class="chat-messages" id="chatMessages">
+            <div class="msg msg-sonia">
+                Hola, soy Sonia. Puedo ayudarte con dudas generales sobre prevención,
+                autoexamen y controles de salud mamaria. ¿En qué puedo ayudarte hoy?
+            </div>
+        </div>
+
+        <!-- Input -->
+        <div class="chat-input-area">
+            <div id="typingIndicator" class="typing-indicator mb-1" style="display:none;">Sonia está escribiendo...</div>
+            <form id="chatForm" class="d-flex gap-2">
+                <input type="text" id="chatInput" class="form-control" placeholder="Escribe tu consulta..." autocomplete="off" required>
+                <button type="submit" class="btn btn-medtech px-4">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        const CHAT_ENDPOINT = "{% url 'asistente_virtual_mensaje' %}";
+        const CSRF_TOKEN = "{{ csrf_token }}";
+    </script>
+    <script src="{% static 'prevencion/js/chat_sonia.js' %}"></script>
+    <script src="{% static 'prevencion/js/animaciones.js' %}"></script>
+</body>
+</html>

@@ -1,0 +1,68 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ nombre_sesion }}</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{% static 'prevencion/css/estilos.css' %}">
+</head>
+<body class="bg-light py-5">
+    <div class="container" style="max-width: 800px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <a href="{% url 'educativo_menu' %}" class="btn btn-outline-secondary">← Cambiar de Sesión</a>
+            <h4 class="text-primary fw-bold m-0">{{ nombre_sesion }}</h4>
+        </div>
+
+        {% if preguntas %}
+            {% for p in preguntas %}
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-body p-4">
+                    <h5 class="fw-bold mb-3">{{ forloop.counter }}. {{ p.enunciado }}</h5>
+                    
+                    <div class="d-flex gap-2 mb-3">
+                        {% if p.respuesta_correcta %}
+                            <button class="btn btn-outline-primary px-4" onclick="verificar('{{ p.id }}', true, true)">Verdadero / Realidad</button>
+                            <button class="btn btn-outline-danger px-4" onclick="verificar('{{ p.id }}', false, true)">Falso / Mito</button>
+                        {% else %}
+                            <button class="btn btn-outline-primary px-4" onclick="verificar('{{ p.id }}', true, false)">Verdadero / Realidad</button>
+                            <button class="btn btn-outline-danger px-4" onclick="verificar('{{ p.id }}', false, false)">Falso / Mito</button>
+                        {% endif %}
+                    </div>
+
+                    <div id="retro-{{ p.id }}" class="alert d-none mt-3" role="alert">
+                        <h6 id="titulo-{{ p.id }}" class="fw-bold"></h6>
+                        <p id="explicacion-{{ p.id }}" class="m-0 small">{{ p.explicacion_medica }}</p>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <div class="alert alert-warning text-center">
+                Aún no hay preguntas cargadas en la base de datos para esta sesión.
+                <br><small>Puedes agregarlas ingresando al <a href="/admin/" target="_blank">Panel de Administración</a>.</small>
+            </div>
+        {% endif %}
+    </div>
+
+    <script>
+        function verificar(id, seleccion, respuestaCorrecta) {
+            const cuadroRetro = document.getElementById('retro-' + id);
+            const titulo = document.getElementById('titulo-' + id);
+
+            cuadroRetro.classList.remove('d-none', 'alert-success', 'alert-danger');
+
+            if (seleccion === respuestaCorrecta) {
+                cuadroRetro.classList.add('alert-success');
+                titulo.innerText = "¡Correcto! 🎉";
+            } else {
+                cuadroRetro.classList.add('alert-danger');
+                titulo.innerText = "Respuesta Incorrecta ⚠️";
+            }
+        }
+    </script>
+    <script src="{% static 'prevencion/js/animaciones.js' %}"></script>
+</body>
+</html>

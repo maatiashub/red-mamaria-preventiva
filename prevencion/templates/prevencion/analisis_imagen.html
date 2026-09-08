@@ -1,0 +1,149 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Análisis de Imagen - Red Mamaria Preventiva con AI</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="{% static 'prevencion/css/estilos.css' %}">
+    <style>
+        .dropzone {
+            border: 2px dashed #e0ccfa;
+            border-radius: 12px;
+            padding: 2.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: border-color 0.2s ease;
+        }
+        .dropzone:hover, .dropzone.dragover {
+            border-color: #8b5cf6;
+            background-color: rgba(139, 92, 246, 0.04);
+        }
+        #previewImg {
+            max-height: 260px;
+            border-radius: 10px;
+            display: none;
+        }
+        .badge-riesgo-Verde { background-color: #3b8254; }
+        .badge-riesgo-Amarillo { background-color: #d97706; color: #fff; }
+        .badge-riesgo-Rojo { background-color: #c04862; }
+    </style>
+</head>
+<body class="py-5">
+    <div class="container" style="max-width: 800px;">
+
+        <div class="d-flex align-items-center gap-2 mb-4">
+            <a href="{% url 'inicio' %}" class="btn btn-sm btn-outline-secondary border-0">
+                <i class="bi bi-arrow-left"></i>
+            </a>
+            <h4 class="fw-bold mb-0" style="color:#7c3aed;">Análisis de Imagen</h4>
+        </div>
+
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <div class="card-session p-4 mb-4">
+            <p class="text-muted mb-3">Sube tu ecografía o mamografía para una evaluación preliminar.</p>
+
+            <form method="post" enctype="multipart/form-data" id="uploadForm">
+                {% csrf_token %}
+                <div class="dropzone mb-3" id="dropzone">
+                    <i class="bi bi-cloud-arrow-up fs-1 text-muted"></i>
+                    <p class="mb-0 mt-2 text-muted">Haz clic o arrastra una imagen aquí (JPG, PNG)</p>
+                    <img id="previewImg" class="mt-3">
+                    <input type="file" name="imagen_original" id="imagenInput" accept="image/*" class="d-none" required>
+                </div>
+                <button type="submit" class="btn btn-medtech w-100" id="submitBtn" disabled>
+                    <i class="bi bi-search me-1"></i> Analizar Imagen
+                </button>
+            </form>
+        </div>
+
+        {% if resultado %}
+        <div class="card-session p-4 mb-4">
+            <h6 class="fw-bold mb-3">Resultado del Análisis</h6>
+            <div class="d-flex align-items-center gap-3">
+                <img src="{{ resultado.imagen_original.url }}" style="width:90px; height:90px; object-fit:cover; border-radius:8px;">
+                <div>
+                    <span class="badge badge-riesgo-{{ resultado.rango_alerta }} mb-1">
+                        Nivel: {{ resultado.rango_alerta }}
+                    </span>
+                    <div class="fw-bold fs-5">{{ resultado.porcentaje_riesgo }}% de riesgo estimado</div>
+                    <div class="text-muted small">{{ resultado.fecha_analisis }}</div>
+                </div>
+            </div>
+            <div class="alert alert-warning mt-3 mb-0 small">
+                <i class="bi bi-info-circle me-1"></i>
+                Este resultado es preliminar y no reemplaza el diagnóstico médico profesional.
+                El modelo de IA de análisis definitivo está en integración.
+            </div>
+        </div>
+        {% endif %}
+
+        {% if historial %}
+        <div class="card-session p-4">
+            <h6 class="fw-bold mb-3">Historial reciente</h6>
+            <div class="list-group list-group-flush">
+                {% for item in historial %}
+                <div class="list-group-item d-flex align-items-center gap-3 px-0">
+                    <img src="{{ item.imagen_original.url }}" style="width:48px; height:48px; object-fit:cover; border-radius:6px;">
+                    <div class="flex-grow-1">
+                        <span class="badge badge-riesgo-{{ item.rango_alerta }}">{{ item.rango_alerta }}</span>
+                        <span class="ms-1">{{ item.porcentaje_riesgo }}%</span>
+                    </div>
+                    <div class="text-muted small">{{ item.fecha_analisis|date:"d/m/Y H:i" }}</div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+    </div>
+
+    <script>
+        const dropzone = document.getElementById('dropzone');
+        const input = document.getElementById('imagenInput');
+        const preview = document.getElementById('previewImg');
+        const submitBtn = document.getElementById('submitBtn');
+
+        dropzone.addEventListener('click', () => input.click());
+
+        dropzone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropzone.classList.add('dragover');
+        });
+        dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+        dropzone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropzone.classList.remove('dragover');
+            if (e.dataTransfer.files.length) {
+                input.files = e.dataTransfer.files;
+                mostrarPreview();
+            }
+        });
+
+        input.addEventListener('change', mostrarPreview);
+
+        function mostrarPreview() {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                preview.src = e.target.result;
+                preview.style.display = 'inline-block';
+            };
+            reader.readAsDataURL(file);
+            submitBtn.disabled = false;
+        }
+    </script>
+    <script src="{% static 'prevencion/js/animaciones.js' %}"></script>
+</body>
+</html>
